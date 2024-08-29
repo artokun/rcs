@@ -8,13 +8,16 @@ if ! command -v rustc &> /dev/null; then
     rustup target add wasm32-unknown-unknown
 fi
 
-# Install wasm-bindgen-cli only if it's not already installed
-if ! cargo install -f wasm-bindgen-cli; then
+# Check if wasm-bindgen-cli is installed
+if ! command -v wasm-bindgen &> /dev/null; then
+    echo "Installing wasm-bindgen-cli..."
+    cargo install wasm-bindgen-cli
+else
     echo "wasm-bindgen-cli is already installed"
 fi
 
 # Build the project
-cargo build --release --features production --target wasm32-unknown-unknown
+cargo build --release --target wasm32-unknown-unknown --features production
 
 # Generate JavaScript bindings
 wasm-bindgen --out-dir ./dist/out/ --target web ./target/wasm32-unknown-unknown/release/rcs.wasm
