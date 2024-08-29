@@ -4,7 +4,7 @@
   "description": "This is a game about programming reaction control systems for space ships.",
   "main": "index.js",
   "scripts": {
-    "build": "bash ./scripts/build.sh",
+    "html": "bash ./scripts/build.sh",
     "dev": "cargo watch -x 'run --target wasm32-unknown-unknown'"
   },
   "author": "",
