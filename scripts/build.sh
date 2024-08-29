@@ -2,15 +2,19 @@
 set -e
 
 # Install Rust and required components
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source $HOME/.cargo/env
-rustup target add wasm32-unknown-unknown
+if ! command -v rustc &> /dev/null; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source $HOME/.cargo/env
+    rustup target add wasm32-unknown-unknown
+fi
 
-# Install wasm-bindgen-cli
-cargo install -f wasm-bindgen-cli
+# Install wasm-bindgen-cli only if it's not already installed
+if ! cargo install -f wasm-bindgen-cli; then
+    echo "wasm-bindgen-cli is already installed"
+fi
 
 # Build the project
-cargo build --release --target wasm32-unknown-unknown
+cargo build --release --features production --target wasm32-unknown-unknown
 
 # Generate JavaScript bindings
 wasm-bindgen --out-dir ./dist/out/ --target web ./target/wasm32-unknown-unknown/release/rcs.wasm

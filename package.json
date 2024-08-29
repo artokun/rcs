@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "html": "bash ./scripts/build.sh",
-    "dev": "cargo watch -x 'run --target wasm32-unknown-unknown'"
+    "dev": "cargo watch -x 'run --target wasm32-unknown-unknown'",
+    "deploy": "npm run html && vercel"
   },
   "author": "",
   "license": "ISC"

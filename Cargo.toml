@@ -8,7 +8,7 @@ avian2d = { git = "https://github.com/Jondolf/avian", branch = "main", features 
     "simd",
 ] }
 bevy = { version = "0.14.1" }
-bevy-inspector-egui = { version = "0.25.2", default_features = false, features = [
+bevy-inspector-egui = { version = "0.25.2", default-features = false, features = [
     "bevy_render",
 ] }
 log = { version = "*", features = [
@@ -20,13 +20,6 @@ rand = "0.8.5"
 # Add this section to enable the unstable APIs for web targets
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
-
-[target.'cfg(debug_assertions)'.dependencies]
-bevy = { version = "0.14.1" }
-
-[target.'cfg(not(debug_assertions))'.dependencies]
-bevy = { version = "0.14.1" }
-
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
 opt-level = 1
@@ -39,3 +32,7 @@ opt-level = 3
 lto = true
 codegen-units = 1
 panic = 'abort'
+
+[features]
+default = []
+production = ["bevy/webgpu"]

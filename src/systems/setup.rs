@@ -80,8 +80,8 @@ pub fn setup_physics(
     /* Create the player's cargo tug. */
     commands.spawn((
         Player {
-            thrust: 100.0,
-            torque: 100.0,
+            thrust: 500.0,
+            torque: 500.0,
         },
         RigidBody::Dynamic,
         Collider::rectangle(20.0, 30.0),
