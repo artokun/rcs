@@ -44,27 +44,6 @@
         });
       }
 
-      const reloadInterval = 1000;
-
-      async function startReloadInterval() {
-        const fetchVersion = () =>
-          fetch("/api/version").then((response) => response.text());
-        const version = await fetchVersion();
-        let intervalToken;
-
-        function reloadIfChanged() {
-          fetchVersion()
-            .then((newVersion) => {
-              if (version != newVersion) {
-                window.location.reload();
-              }
-            })
-            .catch((_) => {});
-        }
-
-        intervalToken = setInterval(reloadIfChanged, reloadInterval);
-      }
-
       let queuedMessages = [];
       let websocket = new WebSocket(
         (window.location.protocol === "https:" ? "wss://" : "ws://") +
@@ -175,7 +154,6 @@
       }
 
       run();
-      startReloadInterval();
     </script>
 
     <script>
