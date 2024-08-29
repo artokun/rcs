@@ -44,3 +44,12 @@ The space station has a small refueling section that can transfer fuel from the 
 The cargo tug has a small cargo hold that can hold one SCU at a time.
 
 The cargo tug has a small reaction mass tank that can hold 100 units of reaction mass.
+
+## To release on web
+
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install -f wasm-bindgen-cli
+cargo build --release --target wasm32-unknown-unknown
+wasm-bindgen --out-dir ./dist/out/ --target web ./target/wasm32-unknown-unknown/release/rcs.wasm
+```

@@ -17,8 +17,8 @@ fn main() {
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "RCS".to_string(),
-                    resolution: (400., 600.).into(),
-                    position: WindowPosition::At(IVec2::new(0, 0)),
+                    fit_canvas_to_parent: true,
+                    prevent_default_event_handling: false,
                     ..default()
                 }),
                 ..default()
