@@ -17,7 +17,7 @@ else
 fi
 
 # Build the project
-cargo build --release --target wasm32-unknown-unknown --features production
+cargo build --release --target wasm32-unknown-unknown
 
 # Generate JavaScript bindings
 wasm-bindgen --out-dir ./dist/out/ --target web ./target/wasm32-unknown-unknown/release/rcs.wasm

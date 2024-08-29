@@ -77,21 +77,223 @@ pub fn setup_physics(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let transform = Transform::default();
+    let ship_dimensions = Vec2::new(20.0, 30.0);
     /* Create the player's cargo tug. */
-    commands.spawn((
-        Player {
-            thrust: 500.0,
-            torque: 500.0,
+    commands
+        .spawn((
+            Name::new("Player"),
+            Player {
+                thrust: 500.0,
+                torque: 500.0,
+            },
+            RigidBody::Dynamic,
+            Collider::rectangle(ship_dimensions.x, ship_dimensions.y),
+            Mass(ship_dimensions.x * ship_dimensions.y),
+            Inertia(1.0),
+            MaterialMesh2dBundle {
+                mesh: Mesh2dHandle(
+                    meshes.add(Rectangle::new(ship_dimensions.x, ship_dimensions.y)),
+                ),
+                material: materials.add(Color::srgb(0.0, 1.0, 0.0)),
+                transform,
+                ..default()
+            },
+        ))
+        .with_children(|parent| {
+            spawn_thruster(
+                parent,
+                &mut meshes,
+                &mut materials,
+                ship_dimensions,
+                Vec2::new(4.0, 4.0),
+                RCSThrusterMount {
+                    position: RCSThrusterMountPosition::Left,
+                    orientation: RCSThrusterMountOrientation::Horizontal,
+                    alignment: RCSThrusterMountAlignment::Start,
+                },
+            ); // Left thruster
+            spawn_thruster(
+                parent,
+                &mut meshes,
+                &mut materials,
+                ship_dimensions,
+                Vec2::new(4.0, 4.0),
+                RCSThrusterMount {
+                    position: RCSThrusterMountPosition::Right,
+                    orientation: RCSThrusterMountOrientation::Horizontal,
+                    alignment: RCSThrusterMountAlignment::Start,
+                },
+            );
+            spawn_thruster(
+                parent,
+                &mut meshes,
+                &mut materials,
+                ship_dimensions,
+                Vec2::new(4.0, 4.0),
+                RCSThrusterMount {
+                    position: RCSThrusterMountPosition::Left,
+                    orientation: RCSThrusterMountOrientation::Horizontal,
+                    alignment: RCSThrusterMountAlignment::End,
+                },
+            );
+            spawn_thruster(
+                parent,
+                &mut meshes,
+                &mut materials,
+                ship_dimensions,
+                Vec2::new(4.0, 4.0),
+                RCSThrusterMount {
+                    position: RCSThrusterMountPosition::Right,
+                    orientation: RCSThrusterMountOrientation::Horizontal,
+                    alignment: RCSThrusterMountAlignment::End,
+                },
+            );
+        });
+}
+
+fn spawn_thruster(
+    parent: &mut ChildBuilder,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    parent_dimensions: Vec2,
+    thruster_dimensions: Vec2,
+    mount: RCSThrusterMount,
+) {
+    let thruster_mount = match mount.position {
+        RCSThrusterMountPosition::Left => Vec2::new(thruster_dimensions.x / 2.0, 0.0),
+        RCSThrusterMountPosition::Right => Vec2::new(-thruster_dimensions.x / 2.0, 0.0),
+        RCSThrusterMountPosition::Top => Vec2::new(0.0, thruster_dimensions.y / 2.0),
+        RCSThrusterMountPosition::Bottom => Vec2::new(0.0, -thruster_dimensions.y / 2.0),
+    };
+    let ship_mount = match mount.position {
+        RCSThrusterMountPosition::Left => match mount.alignment {
+            RCSThrusterMountAlignment::Center => match mount.orientation {
+                _ => Vec2::new(-parent_dimensions.x / 2.0, 0.0),
+            },
+            RCSThrusterMountAlignment::Start => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    -parent_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0 + thruster_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    -parent_dimensions.x / 2.0 + thruster_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0,
+                ),
+            },
+            RCSThrusterMountAlignment::End => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    -parent_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0 - thruster_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    -parent_dimensions.x / 2.0 + thruster_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0,
+                ),
+            },
+        },
+        RCSThrusterMountPosition::Right => match mount.alignment {
+            RCSThrusterMountAlignment::Center => match mount.orientation {
+                _ => Vec2::new(parent_dimensions.x / 2.0, 0.0),
+            },
+            RCSThrusterMountAlignment::Start => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    parent_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0 + thruster_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    parent_dimensions.x / 2.0 - thruster_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0,
+                ),
+            },
+            RCSThrusterMountAlignment::End => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    parent_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0 - thruster_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    parent_dimensions.x / 2.0 - thruster_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0,
+                ),
+            },
+        },
+        RCSThrusterMountPosition::Top => match mount.alignment {
+            RCSThrusterMountAlignment::Center => match mount.orientation {
+                _ => Vec2::new(0.0, parent_dimensions.y / 2.0),
+            },
+            RCSThrusterMountAlignment::Start => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    -parent_dimensions.x / 2.0 + thruster_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    -parent_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0 - thruster_dimensions.y / 2.0,
+                ),
+            },
+            RCSThrusterMountAlignment::End => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    parent_dimensions.x / 2.0 - thruster_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    parent_dimensions.x / 2.0,
+                    parent_dimensions.y / 2.0 - thruster_dimensions.y / 2.0,
+                ),
+            },
+        },
+        RCSThrusterMountPosition::Bottom => match mount.alignment {
+            RCSThrusterMountAlignment::Center => match mount.orientation {
+                _ => Vec2::new(0.0, -parent_dimensions.y / 2.0),
+            },
+            RCSThrusterMountAlignment::Start => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    -parent_dimensions.x / 2.0 + thruster_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    -parent_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0 + thruster_dimensions.y / 2.0,
+                ),
+            },
+            RCSThrusterMountAlignment::End => match mount.orientation {
+                RCSThrusterMountOrientation::Horizontal => Vec2::new(
+                    parent_dimensions.x / 2.0 - thruster_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0,
+                ),
+                RCSThrusterMountOrientation::Vertical => Vec2::new(
+                    parent_dimensions.x / 2.0,
+                    -parent_dimensions.y / 2.0 + thruster_dimensions.y / 2.0,
+                ),
+            },
+        },
+    };
+    let thruster = parent.spawn((
+        Name::new(format!(
+            "{:?}_{:?}_{:?}",
+            mount.alignment, mount.orientation, mount.position
+        )),
+        RCSThruster {
+            mount,
+            active: false,
         },
         RigidBody::Dynamic,
-        Collider::rectangle(20.0, 30.0),
-        Mass(20.0 * 30.0),
-        Inertia(1.0),
+        Collider::rectangle(thruster_dimensions.x, thruster_dimensions.y),
+        Mass(thruster_dimensions.x * thruster_dimensions.y / 5.0),
+        Inertia(1.0 / 5.0),
         MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Rectangle::new(20.0, 30.0))),
-            material: materials.add(Color::srgb(0.0, 1.0, 0.0)),
-            transform,
+            mesh: Mesh2dHandle(
+                meshes.add(Rectangle::new(thruster_dimensions.x, thruster_dimensions.y)),
+            ),
+            material: materials.add(Color::srgb(1.0, 0.0, 0.0)),
+            transform: Transform::from_translation(ship_mount.extend(0.0)),
             ..default()
         },
     ));
+    let thruster_entity = thruster.id();
+    let ship_entity = parent.parent_entity();
+    parent.spawn(
+        FixedJoint::new(ship_entity, thruster_entity)
+            .with_local_anchor_1(ship_mount)
+            .with_local_anchor_2(thruster_mount),
+    );
 }

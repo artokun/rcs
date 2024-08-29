@@ -15,7 +15,10 @@ pub fn update_ui(
 
             text.sections[0].value = format!(
                 "BRG: {:.2} deg\nVREL: {:.2} m/s\nXVEL: {:.2} m/s\nYVEL: {:.2} m/s",
-                angle_360, velocity_magnitude, linvel.x, linvel.y
+                angle_360,
+                velocity_magnitude,
+                linvel.x.abs(),
+                linvel.y.abs()
             );
         }
     }

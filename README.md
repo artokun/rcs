@@ -53,3 +53,151 @@ cargo install -f wasm-bindgen-cli
 cargo build --release --target wasm32-unknown-unknown
 wasm-bindgen --out-dir ./dist/out/ --target web ./target/wasm32-unknown-unknown/release/rcs.wasm
 ```
+
+
+## Notes
+
+### VREL and VCRL
+```rs
+use bevy::prelude::*;
+
+#[derive(Component)]
+struct Spaceship {
+    velocity: Vec2,
+}
+
+#[derive(Component)]
+struct Target {
+    velocity: Vec2,
+}
+
+fn calculate_velocities(
+    spaceship_query: Query<(&Transform, &Spaceship)>,
+    target_query: Query<(&Transform, &Target)>,
+) {
+    let (spaceship_transform, spaceship) = spaceship_query.single();
+    let (target_transform, target) = target_query.single();
+
+    let spaceship_position = spaceship_transform.translation.truncate();
+    let target_position = target_transform.translation.truncate();
+
+    // Calculate VREL
+    let v_rel = spaceship.velocity - target.velocity;
+
+    // Calculate vector from target to spaceship
+    let r = spaceship_position - target_position;
+    let r_hat = r.normalize();
+
+    // Calculate VCRL
+    let v_crl = v_rel - v_rel.dot(r_hat) * r_hat;
+
+    println!("VREL: {:?}", v_rel);
+    println!("VCRL: {:?}", v_crl);
+}
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Update, calculate_velocities)
+        .run();
+}
+```
+
+### RCS Particle System
+```rs
+use bevy::prelude::*;
+use bevy::sprite::MaterialMesh2dBundle;
+use rand::prelude::*;
+
+// Component to mark entities as RCS thrusters
+#[derive(Component)]
+struct RCSThruster {
+    active: bool,
+}
+
+// Component for particles
+#[derive(Component)]
+struct Particle {
+    lifetime: Timer,
+    velocity: Vec2,
+}
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, setup)
+        .add_systems(Update, (update_thrusters, update_particles))
+        .run();
+}
+
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    commands.spawn(Camera2dBundle::default());
+
+    // Spawn the RCS thruster
+    commands.spawn((
+        RCSThruster { active: false },
+        TransformBundle::from(Transform::from_xyz(0.0, 0.0, 0.0)),
+    ));
+}
+
+fn update_thrusters(
+    mut commands: Commands,
+    mut thruster_query: Query<(&mut RCSThruster, &Transform)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    time: Res<Time>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    for (mut thruster, transform) in thruster_query.iter_mut() {
+        // Toggle thruster with spacebar
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            thruster.active = !thruster.active;
+        }
+
+        if thruster.active {
+            // Spawn particles
+            if random::<f32>() < 0.5 {
+                let mut rng = rand::thread_rng();
+                let angle = rng.gen_range(-15.0..15.0f32).to_radians();
+                let speed = rng.gen_range(50.0..100.0);
+                let velocity = Vec2::new(angle.sin() * speed, angle.cos() * speed);
+
+                commands.spawn((
+                    MaterialMesh2dBundle {
+                        mesh: meshes.add(shape::Circle::new(2.0).into()).into(),
+                        material: materials.add(ColorMaterial::from(Color::WHITE)),
+                        transform: Transform::from_translation(transform.translation),
+                        ..default()
+                    },
+                    Particle {
+                        lifetime: Timer::from_seconds(0.5, TimerMode::Once),
+                        velocity,
+                    },
+                ));
+            }
+        }
+    }
+}
+
+fn update_particles(
+    mut commands: Commands,
+    mut particle_query: Query<(Entity, &mut Transform, &mut Particle)>,
+    time: Res<Time>,
+) {
+    for (entity, mut transform, mut particle) in particle_query.iter_mut() {
+        particle.lifetime.tick(time.delta());
+
+        if particle.lifetime.finished() {
+            commands.entity(entity).despawn();
+        } else {
+            let t = 1.0 - particle.lifetime.percent_left();
+            transform.translation += particle.velocity.extend(0.0) * time.delta_seconds();
+            transform.scale = Vec3::splat(1.0 - t);
+        }
+    }
+}
+```

@@ -17,3 +17,36 @@ pub struct FPSText;
 
 #[derive(Component)]
 pub struct AttitudeText;
+
+#[derive(Debug)]
+pub enum RCSThrusterMountPosition {
+    Top,
+    Bottom,
+    Left,
+    Right,
+}
+
+#[derive(Debug)]
+pub enum RCSThrusterMountOrientation {
+    Horizontal,
+    Vertical,
+}
+
+#[derive(Debug)]
+pub enum RCSThrusterMountAlignment {
+    Center,
+    Start,
+    End,
+}
+#[derive(Debug)]
+pub struct RCSThrusterMount {
+    pub position: RCSThrusterMountPosition,
+    pub orientation: RCSThrusterMountOrientation,
+    pub alignment: RCSThrusterMountAlignment,
+}
+
+#[derive(Component)]
+pub struct RCSThruster {
+    pub active: bool,
+    pub mount: RCSThrusterMount,
+}
