@@ -1,12 +1,9 @@
-use core::f32;
 use std::collections::HashMap;
-use std::f32::EPSILON;
 
 use crate::components::*;
 use crate::resources::*;
 use avian2d::prelude::*;
 use bevy::color::palettes::css::GOLD;
-use bevy::math::VectorSpace;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};

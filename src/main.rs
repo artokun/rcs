@@ -26,7 +26,7 @@ fn main() {
             PhysicsPlugins::default().with_length_unit(10.0),
             #[cfg(not(feature = "production"))]
             PhysicsDebugPlugin::default(),
-            FrameTimeDiagnosticsPlugin::default(),
+            FrameTimeDiagnosticsPlugin,
             #[cfg(not(feature = "production"))]
             WorldInspectorPlugin::default().run_if(|| DEBUG),
         ))

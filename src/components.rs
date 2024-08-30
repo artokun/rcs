@@ -20,6 +20,7 @@ pub struct ControlsText;
 #[derive(Component)]
 pub struct AttitudeText;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum RCSThrusterMountPosition {
     Top,
@@ -28,12 +29,14 @@ pub enum RCSThrusterMountPosition {
     Right,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum RCSThrusterMountOrientation {
     Horizontal,
     Vertical,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum RCSThrusterMountAlignment {
     Center,
@@ -47,6 +50,7 @@ pub struct RCSThrusterMount {
     pub alignment: RCSThrusterMountAlignment,
 }
 
+#[allow(dead_code)]
 #[derive(Component)]
 pub struct RCSThruster {
     pub active: bool,
