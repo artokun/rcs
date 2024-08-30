@@ -14,6 +14,8 @@ pub struct SpaceDustChunk {
 
 #[derive(Component)]
 pub struct FPSText;
+#[derive(Component)]
+pub struct ControlsText;
 
 #[derive(Component)]
 pub struct AttitudeText;

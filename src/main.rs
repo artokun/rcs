@@ -23,9 +23,9 @@ fn main() {
                 }),
                 ..default()
             }),
-            PhysicsPlugins::default().with_length_unit(20.0),
+            PhysicsPlugins::default().with_length_unit(10.0),
             #[cfg(not(feature = "production"))]
-            // PhysicsDebugPlugin::default(),
+            PhysicsDebugPlugin::default(),
             FrameTimeDiagnosticsPlugin::default(),
             #[cfg(not(feature = "production"))]
             WorldInspectorPlugin::default().run_if(|| DEBUG),
@@ -36,6 +36,7 @@ fn main() {
                 setup::setup_resources,
                 setup::setup_graphics,
                 setup::setup_physics,
+                setup::setup_controls,
             ),
         )
         .add_systems(FixedUpdate, player::apply_force_to_player)

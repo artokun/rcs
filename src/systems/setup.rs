@@ -6,6 +6,7 @@ use crate::components::*;
 use crate::resources::*;
 use avian2d::prelude::*;
 use bevy::color::palettes::css::GOLD;
+use bevy::math::VectorSpace;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
@@ -73,6 +74,25 @@ pub fn setup_graphics(mut commands: Commands) {
     ));
 }
 
+pub fn setup_controls(mut commands: Commands) {
+    commands.spawn((
+        TextBundle::from_section(
+            "Controls:\nW,A,S,D to strafe\nQ and E to rotate\nR to stop rotation",
+            TextStyle {
+                font_size: 20.0,
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(15.0),
+            left: Val::Px(15.0),
+            ..default()
+        }),
+        ControlsText,
+    ));
+}
+
 pub fn setup_physics(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -100,6 +120,18 @@ pub fn setup_physics(
             },
         ))
         .with_children(|parent| {
+            // Draw Arrow
+            parent.spawn(MaterialMesh2dBundle {
+                mesh: Mesh2dHandle(meshes.add(Triangle2d::new(
+                    Vec2::ZERO,
+                    Vec2::new(-ship_dimensions.x / 4.0, -ship_dimensions.y / 4.0),
+                    Vec2::new(ship_dimensions.x / 4.0, -ship_dimensions.y / 4.0),
+                ))),
+                material: materials.add(ColorMaterial::from(Color::srgba(0.0, 0.0, 0.0, 0.7))),
+                transform: Transform::from_xyz(0.0, ship_dimensions.y / 2.0, 0.1),
+                ..default()
+            });
+
             // Top Left
             spawn_thruster(
                 parent,

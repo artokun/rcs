@@ -44,7 +44,10 @@ pub fn apply_force_to_player(
         }
 
         let rotated_force = transform.rotation * force.extend(0.0);
-        impulse.apply_impulse(rotated_force.truncate());
-        angular_impulse.apply_impulse(torque * 2.0);
+        let clamped_force = rotated_force.truncate().clamp_length_max(player.thrust);
+        impulse.apply_impulse(clamped_force);
+
+        let clamped_torque = torque.clamp(-player.torque * 2.0, player.torque * 2.0);
+        angular_impulse.apply_impulse(clamped_torque);
     }
 }
