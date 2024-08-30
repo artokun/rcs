@@ -9,12 +9,13 @@ pub fn apply_force_to_player(
             &mut ExternalImpulse,
             &mut ExternalAngularImpulse,
             &Transform,
+            &AngularVelocity,
         ),
         With<Player>,
     >,
     kb_input: Res<ButtonInput<KeyCode>>,
 ) {
-    for (player, mut impulse, mut angular_impulse, transform) in player_query.iter_mut() {
+    for (player, mut impulse, mut angular_impulse, transform, angvel) in player_query.iter_mut() {
         let mut force = Vec2::ZERO;
         let mut torque = 0.0;
         if kb_input.pressed(KeyCode::KeyW) {
@@ -36,7 +37,10 @@ pub fn apply_force_to_player(
             torque -= player.torque;
         }
         if kb_input.pressed(KeyCode::KeyR) {
-            println!("R pressed");
+            // Calculate the angular velocity and apply a counter-torque
+            let base_torque = -angvel.0 * player.torque;
+            let boost_factor = 1.0 + (1.0 - angvel.0.abs().min(1.0));
+            torque = (base_torque * boost_factor).clamp(-player.torque, player.torque);
         }
 
         let rotated_force = transform.rotation * force.extend(0.0);
