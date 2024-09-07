@@ -2,13 +2,28 @@ use std::f32::consts::PI;
 
 use avian3d::prelude::*;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::*;
+use bevy::{
+    asset::LoadState,
+    core_pipeline::Skybox,
+    prelude::*,
+    render::{
+        render_resource::{TextureViewDescriptor, TextureViewDimension},
+        renderer::RenderDevice,
+        texture::CompressedImageFormats,
+    },
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 #[derive(Component)]
 struct Ship;
 
+#[derive(Resource)]
+struct Cubemap {
+    is_loaded: bool,
+    index: usize,
+    image_handle: Handle<Image>,
+}
 fn main() {
     App::new()
         .add_plugins((
@@ -33,14 +48,11 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(AmbientLight {
             color: Color::WHITE,
-            brightness: 15.0,
+            brightness: 1.0,
         })
         .add_systems(Startup, (setup_camera, setup_light, setup_ship))
-        .add_systems(
-            FixedPostUpdate,
-            cam_follow, // .after(PhysicsSet::Sync)
-                        // .before(TransformSystem::TransformPropagate),
-        )
+        .add_systems(Update, asset_loaded)
+        .add_systems(FixedPostUpdate, cam_follow)
         .run();
 }
 
@@ -60,8 +72,8 @@ fn setup_ship(
             material: materials.add(Color::WHITE),
             ..default()
         },
-        AngularVelocity(Vec3::ONE),
-        LinearVelocity(Vec3::ONE),
+        AngularVelocity(Vec3::ZERO),
+        LinearVelocity(Vec3::ZERO),
         SleepingDisabled,
     ));
 }
@@ -83,7 +95,9 @@ fn setup_light(mut commands: Commands) {
     });
 }
 
-fn setup_camera(mut commands: Commands) {
+fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let skybox_handle = asset_server.load("cubemap/starmap.ktx2");
+
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(0.0, 0.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -94,7 +108,43 @@ fn setup_camera(mut commands: Commands) {
             pan_smoothness: 0.0,
             ..default()
         },
+        Skybox {
+            image: skybox_handle.clone(),
+            brightness: 1000.0,
+        },
     ));
+
+    commands.insert_resource(Cubemap {
+        is_loaded: false,
+        index: 0,
+        image_handle: Handle::<Image>::default(),
+    })
+}
+
+fn asset_loaded(
+    asset_server: Res<AssetServer>,
+    mut images: ResMut<Assets<Image>>,
+    mut cubemap: ResMut<Cubemap>,
+    mut skyboxes: Query<&mut Skybox>,
+) {
+    if !cubemap.is_loaded && asset_server.load_state(&cubemap.image_handle) == LoadState::Loaded {
+        let image = images.get_mut(&cubemap.image_handle).unwrap();
+        // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
+        // so they appear as one texture. The following code reconfigures the texture as necessary.
+        if image.texture_descriptor.array_layer_count() == 1 {
+            image.reinterpret_stacked_2d_as_array(image.height() / image.width());
+            image.texture_view_descriptor = Some(TextureViewDescriptor {
+                dimension: Some(TextureViewDimension::Cube),
+                ..default()
+            });
+        }
+
+        for mut skybox in &mut skyboxes {
+            skybox.image = cubemap.image_handle.clone();
+        }
+
+        cubemap.is_loaded = true;
+    }
 }
 
 fn cam_follow(mut pan_orbit_q: Query<&mut PanOrbitCamera>, ship_q: Query<&Transform, With<Ship>>) {
