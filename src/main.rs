@@ -6,11 +6,7 @@ use bevy::{
     asset::LoadState,
     core_pipeline::Skybox,
     prelude::*,
-    render::{
-        render_resource::{TextureViewDescriptor, TextureViewDimension},
-        renderer::RenderDevice,
-        texture::CompressedImageFormats,
-    },
+    render::render_resource::{TextureViewDescriptor, TextureViewDimension},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
@@ -21,7 +17,6 @@ struct Ship;
 #[derive(Resource)]
 struct Cubemap {
     is_loaded: bool,
-    index: usize,
     image_handle: Handle<Image>,
 }
 fn main() {
@@ -48,7 +43,7 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(AmbientLight {
             color: Color::WHITE,
-            brightness: 1.0,
+            brightness: 10.0,
         })
         .add_systems(Startup, (setup_camera, setup_light, setup_ship))
         .add_systems(Update, asset_loaded)
@@ -69,7 +64,7 @@ fn setup_ship(
         Collider::cuboid(dimensions.x, dimensions.y, dimensions.z),
         PbrBundle {
             mesh: meshes.add(Cuboid::new(dimensions.x, dimensions.y, dimensions.z)),
-            material: materials.add(Color::WHITE),
+            material: materials.add(Color::srgb(0.5, 0.5, 0.5)),
             ..default()
         },
         AngularVelocity(Vec3::ZERO),
@@ -82,7 +77,7 @@ fn setup_light(mut commands: Commands) {
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             color: Color::WHITE,
-            illuminance: light_consts::lux::OVERCAST_DAY,
+            illuminance: light_consts::lux::FULL_DAYLIGHT,
             shadows_enabled: true,
             ..default()
         },
@@ -110,13 +105,12 @@ fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Skybox {
             image: skybox_handle.clone(),
-            brightness: 1000.0,
+            brightness: 500.0,
         },
     ));
 
     commands.insert_resource(Cubemap {
         is_loaded: false,
-        index: 0,
         image_handle: Handle::<Image>::default(),
     })
 }
