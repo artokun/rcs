@@ -26,6 +26,3 @@ rm -rf dist/assets
 
 echo "Copying new assets..."
 cp -r assets dist/
-
-# Copy any additional files if needed
-# cp -r static/* dist/
