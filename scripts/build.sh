@@ -21,6 +21,11 @@ cargo build --release --target wasm32-unknown-unknown
 
 # Generate JavaScript bindings
 wasm-bindgen --out-dir ./dist/out/ --target web ./target/wasm32-unknown-unknown/release/rcs.wasm
+echo "Deleting old assets..."
+rm -rf dist/assets
+
+echo "Copying new assets..."
+cp -r assets dist/
 
 # Copy any additional files if needed
 # cp -r static/* dist/
