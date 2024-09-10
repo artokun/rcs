@@ -268,7 +268,7 @@ pub fn update_ui(
             };
 
             text.sections[0].value = format!(
-                "RNG: {:.2} m\nAZ: {:.2}°\nEL: {:.2}°\nVREL: {:.2} m/s\nVCRS_Y: {:.2} m/s\nVCRS_X: {:.2} m/s\nETA: {:.2} s",
+                "RNG: {:.2} m\nAZ: {:.2}deg\nEL: {:.2}deg\nVREL: {:.2} m/s\nVCRS_Y: {:.2} m/s\nVCRS_X: {:.2} m/s\nETA: {:.2} s",
                 range,
                 az,
                 el,
