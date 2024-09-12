@@ -14,7 +14,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::{
     asset::LoadState,
     color::palettes::css::GOLD,
-    core_pipeline::Skybox,
+    core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping, Skybox},
     pbr::DirectionalLightShadowMap,
     prelude::*,
     render::render_resource::{TextureViewDescriptor, TextureViewDimension},
@@ -111,6 +111,28 @@ fn setup_ship(
     ));
 }
 
+fn setup_target(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn((
+        Target,
+        Name::new("Target"),
+        RigidBody::Dynamic,
+        Collider::cuboid(1.0, 1.0, 1.0),
+        PbrBundle {
+            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.0, 0.5, 0.0),
+                ..default()
+            }),
+            transform: Transform::from_xyz(5.0, 5.0, -20.0),
+            ..default()
+        },
+    ));
+}
+
 fn setup_planet_scene(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -133,11 +155,14 @@ fn setup_planet_scene(
             parent.spawn((
                 Name::new("Atmosphere"),
                 PbrBundle {
-                    mesh: meshes.add(Sphere::new(1.75)),
+                    mesh: meshes.add(Sphere::new(1.75).mesh().ico(15).unwrap()),
                     material: materials.add(StandardMaterial {
-                        base_color: Color::srgba(0.1, 0.2, 0.5, 0.1),
                         alpha_mode: AlphaMode::Blend,
-                        emissive: LinearRgba::rgb(0.2, 0.4, 0.8),
+                        base_color: Color::srgba(0.1, 0.2, 0.5, 0.3),
+                        perceptual_roughness: 1.0,
+                        metallic: 0.0,
+                        double_sided: true,
+                        reflectance: 0.5,
                         ..default()
                     }),
                     ..default()
@@ -146,33 +171,10 @@ fn setup_planet_scene(
         });
 }
 
-fn setup_target(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    commands.spawn((
-        Target,
-        Name::new("Target"),
-        RigidBody::Dynamic,
-        Collider::cuboid(1.0, 1.0, 1.0),
-        PbrBundle {
-            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
-            material: materials.add(StandardMaterial {
-                base_color: Color::srgb(0.0, 0.5, 0.0),
-                emissive: LinearRgba::rgb(5.0, 15.0, 13.0),
-                ..default()
-            }),
-            transform: Transform::from_xyz(5.0, 5.0, -20.0),
-            ..default()
-        },
-    ));
-}
-
 fn setup_light(mut commands: Commands) {
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            color: Color::WHITE,
+            color: Color::srgb(1.0, 0.9, 0.8),
             illuminance: light_consts::lux::FULL_DAYLIGHT,
             shadows_enabled: true,
             ..default()
@@ -191,9 +193,15 @@ fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
+            camera: Camera {
+                hdr: true,
+                ..default()
+            },
+            tonemapping: Tonemapping::TonyMcMapface,
+            transform: Transform::from_xyz(1.0, 1.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         },
+        BloomSettings::NATURAL,
         PanOrbitCamera {
             pan_sensitivity: 0.0,
             pan_smoothness: 0.0,
