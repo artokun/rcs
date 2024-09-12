@@ -1,3 +1,6 @@
+mod pipelines_ready;
+
+use pipelines_ready::*;
 use std::f32::consts::PI;
 
 #[cfg(debug_assertions)]
@@ -18,7 +21,6 @@ use bevy::{
     pbr::DirectionalLightShadowMap,
     prelude::*,
     render::render_resource::{TextureViewDescriptor, TextureViewDimension},
-    transform::commands,
 };
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
