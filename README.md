@@ -201,3 +201,6 @@ fn update_particles(
     }
 }
 ```
+
+Credits
+"SPACESHIP EAV 2 "CRAB"" (https://skfb.ly/onUpU) by Ilya Shevchuk is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).

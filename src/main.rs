@@ -4,8 +4,8 @@ use std::f32::consts::PI;
 use avian3d::debug_render::PhysicsDebugPlugin;
 use avian3d::{
     prelude::{
-        AngularDamping, Collider, ColliderDensity, ExternalAngularImpulse, ExternalImpulse,
-        Gravity, Inertia, LinearVelocity, Mass, RigidBody, SleepingDisabled,
+        AngularDamping, Collider, ExternalAngularImpulse, ExternalImpulse, Gravity, LinearVelocity,
+        RigidBody, SleepingDisabled,
     },
     PhysicsPlugins,
 };
@@ -15,8 +15,10 @@ use bevy::{
     asset::LoadState,
     color::palettes::css::GOLD,
     core_pipeline::Skybox,
+    pbr::DirectionalLightShadowMap,
     prelude::*,
     render::render_resource::{TextureViewDescriptor, TextureViewDimension},
+    transform::commands,
 };
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -56,6 +58,7 @@ fn main() {
             #[cfg(debug_assertions)]
             WorldInspectorPlugin::new(),
         ))
+        .insert_resource(DirectionalLightShadowMap { size: 4096 })
         .insert_resource(Gravity(Vec3::ZERO))
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(AmbientLight {
@@ -69,6 +72,7 @@ fn main() {
                 setup_light,
                 setup_ship,
                 setup_target,
+                setup_planet_scene,
                 setup_ui,
             ),
         )
@@ -94,11 +98,52 @@ fn setup_ship(
         AngularDamping(0.0),
         PbrBundle {
             mesh: meshes.add(Cuboid::new(dimensions.x, dimensions.y, dimensions.z)),
-            material: materials.add(Color::srgb(0.5, 0.5, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: GOLD.into(),
+                metallic: 1.0,
+                reflectance: 0.5,
+                perceptual_roughness: 0.2,
+                ..default()
+            }),
             ..default()
         },
         SleepingDisabled,
     ));
+}
+
+fn setup_planet_scene(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    commands
+        .spawn((
+            Name::new("Planet"),
+            SceneBundle {
+                scene: asset_server.load(
+                    GltfAssetLabel::Scene(0).from_asset("models/planet_of_phoenix/scene.gltf"),
+                ),
+                transform: Transform::from_xyz(0.0, 0.0, -6000.0)
+                    .with_scale(Vec3::new(1000.0, 1000.0, 1000.0)),
+                ..default()
+            },
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                Name::new("Atmosphere"),
+                PbrBundle {
+                    mesh: meshes.add(Sphere::new(1.75)),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::srgba(0.1, 0.2, 0.5, 0.1),
+                        alpha_mode: AlphaMode::Blend,
+                        emissive: LinearRgba::rgb(0.2, 0.4, 0.8),
+                        ..default()
+                    }),
+                    ..default()
+                },
+            ));
+        });
 }
 
 fn setup_target(
@@ -157,6 +202,11 @@ fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
         Skybox {
             image: skybox_handle.clone(),
             brightness: 500.0,
+        },
+        EnvironmentMapLight {
+            diffuse_map: skybox_handle.clone(),
+            specular_map: skybox_handle.clone(),
+            intensity: 1000.0,
         },
     ));
 
