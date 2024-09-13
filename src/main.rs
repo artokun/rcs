@@ -1,6 +1,3 @@
-mod pipelines_ready;
-
-use pipelines_ready::*;
 use std::f32::consts::PI;
 
 #[cfg(debug_assertions)]
@@ -25,6 +22,16 @@ use bevy::{
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+
+mod components;
+mod loading;
+mod pipelines_ready;
+mod resources;
+
+use components::*;
+use loading::*;
+use pipelines_ready::*;
+use resources::*;
 
 #[derive(Component)]
 pub struct Ship;
@@ -51,6 +58,7 @@ fn main() {
                 }),
                 ..default()
             }),
+            PipelinesReadyPlugin,
             PanOrbitCameraPlugin,
             PhysicsPlugins::default(),
             #[cfg(debug_assertions)]
@@ -82,6 +90,37 @@ fn main() {
         .add_systems(FixedUpdate, update_controls)
         .add_systems(FixedPostUpdate, (cam_follow, update_ui))
         .run();
+}
+
+fn setup(mut commands: Commands) {
+    let level_data = LevelData {
+        unload_level_id: commands.register_one_shot_system(unload_current_level),
+        level_1_id: commands.register_one_shot_system(unload_current_level),
+        level_2_id: commands.register_one_shot_system(unload_current_level),
+    };
+    commands.insert_resource(level_data);
+
+    // Spawns the UI that will show the user prompts.
+    let text_style = TextStyle {
+        font_size: 50.0,
+        ..default()
+    };
+    commands
+        .spawn(NodeBundle {
+            background_color: BackgroundColor(Color::NONE),
+            style: Style {
+                justify_self: JustifySelf::Center,
+                align_self: AlignSelf::FlexEnd,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
+                "Press 1 or 2 to load a new scene.",
+                text_style,
+            ));
+        });
 }
 
 fn setup_ship(
