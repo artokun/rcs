@@ -4,7 +4,7 @@ use bevy::{
     render::render_resource::{TextureViewDescriptor, TextureViewDimension},
 };
 
-use crate::{Cubemap, Skybox};
+use crate::{resources::Cubemap, Skybox};
 
 pub fn asset_loaded(
     asset_server: Res<AssetServer>,

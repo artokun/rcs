@@ -1,7 +1,7 @@
 use avian3d::prelude::LinearVelocity;
 use bevy::{color::palettes::css::GOLD, prelude::*};
 
-use crate::{AttitudeText, Ship, Target};
+use crate::components::{AttitudeText, Ship, Target};
 
 pub fn setup_ui(mut commands: Commands) {
     commands.spawn((

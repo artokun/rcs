@@ -1,12 +1,14 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::GOLD, prelude::*};
 
-use crate::{components::LevelComponents, resources::LoadingData, Ship, Target};
+use crate::components::{Ship, Target};
 
-pub fn load_level_1(mut commands: Commands) {
-    commands.register_one_shot_system(setup_ship);
-    commands.register_one_shot_system(setup_target);
-    commands.register_one_shot_system(setup_planet_scene);
+pub struct MainScenePlugin;
+
+impl Plugin for MainScenePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, (setup_ship, setup_target, setup_planet_scene));
+    }
 }
 
 fn setup_ship(
@@ -18,7 +20,6 @@ fn setup_ship(
     commands.spawn((
         Ship,
         Name::new("Ship"),
-        LevelComponents,
         RigidBody::Dynamic,
         Collider::cuboid(dimensions.x, dimensions.y, dimensions.z),
         ExternalImpulse::new(Vec3::new(0.0, 0.0, 0.0)),
@@ -47,7 +48,6 @@ fn setup_target(
     commands.spawn((
         Target,
         Name::new("Target"),
-        LevelComponents,
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
         PbrBundle {
@@ -64,21 +64,16 @@ fn setup_target(
 
 fn setup_planet_scene(
     mut commands: Commands,
-    mut loading_data: ResMut<LoadingData>,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let planet_scene = asset_server
         .load(GltfAssetLabel::Scene(0).from_asset("models/planet_of_phoenix/scene.gltf"));
-    loading_data
-        .loading_assets
-        .push(planet_scene.clone().into());
 
     commands
         .spawn((
             Name::new("Planet"),
-            LevelComponents,
             SceneBundle {
                 scene: planet_scene,
                 transform: Transform::from_xyz(0.0, 0.0, -6000.0)

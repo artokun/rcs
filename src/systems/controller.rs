@@ -1,7 +1,7 @@
 use avian3d::prelude::{AngularDamping, ExternalAngularImpulse, ExternalImpulse};
 use bevy::prelude::*;
 
-use crate::Ship;
+use crate::components::Ship;
 
 pub fn update_controls(
     mut ship_q: Query<

@@ -4,7 +4,7 @@ use bevy::{
 };
 use bevy_panorbit_camera::PanOrbitCamera;
 
-use crate::{Cubemap, Ship};
+use crate::{components::Ship, resources::Cubemap};
 
 pub fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
     let skybox_handle = asset_server.load("cubemap/starmap.ktx2");
