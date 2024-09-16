@@ -1,8 +1,42 @@
 use bevy::prelude::*;
+use level1::load_level_1;
 
 use crate::components::*;
+use crate::levels::*;
 use crate::resources::*;
 use crate::PipelinesReady;
+
+// Sets up the levels and the UI for the level selection.
+pub fn setup_levels(mut commands: Commands) {
+    let level_data = LevelData {
+        unload_level_id: commands.register_one_shot_system(unload_current_level),
+        level_1_id: commands.register_one_shot_system(load_level_1),
+        level_2_id: commands.register_one_shot_system(unload_current_level),
+    };
+    commands.insert_resource(level_data);
+
+    // Spawns the UI that will show the user prompts.
+    let text_style = TextStyle {
+        font_size: 50.0,
+        ..default()
+    };
+    commands
+        .spawn(NodeBundle {
+            background_color: BackgroundColor(Color::NONE),
+            style: Style {
+                justify_self: JustifySelf::Center,
+                align_self: AlignSelf::FlexEnd,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
+                "Press 1 or 2 to load a new scene.",
+                text_style,
+            ));
+        });
+}
 
 // Selects the level you want to load.
 pub fn level_selection(
